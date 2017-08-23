@@ -2,6 +2,7 @@
 
 import re
 import sys
+import json
 import socket
 import random
 import config as cfg
@@ -13,8 +14,12 @@ COMANDOS = {
     "Terminar": r"!bye",
     "Fecha": r"!hora",
     "Adivina": r"!adivina",
-    "NO_Adivina": r"!stop"
+    "NO_Adivina": r"!stop",
+    "Abre_Cuenta": r"!abrircuenta",
+    "Checa_Cuenta": r"!checar"
 }
+
+ARCHIVO_CUENTAS = "monedas.json"
 
 def chat(sock, msg):
     """Manda mensaje al servidor de Twitch"""
@@ -56,3 +61,33 @@ def empieza_numero(sock):
     numero = random.randint(1, 20)
     chat(sock, "Adivina el numero magico! (1 al 20)")
     return numero
+
+def abre_cuenta(sock, usuario):
+    """Usuario entra al sistema de ponejonedas"""
+    data = {}
+
+    with open(ARCHIVO_CUENTAS, 'r') as data_file:    
+        data = json.load(data_file)
+
+    if usuario in data:
+        chat(sock, "El usuario {0} ya tiene una cuenta.".format(usuario))
+        return
+
+    data[usuario] = 10
+
+    with open(ARCHIVO_CUENTAS, 'w') as data_file:
+        data_file.write(json.dumps(data, indent=2))
+
+    chat(sock, "El usuario {0} ha abierto una cuenta".format(usuario))
+
+def checa_cuenta(sock, usuario):
+    """Checar cuanto hay en una cuenta"""
+    data = {}
+
+    with open(ARCHIVO_CUENTAS, 'r') as data_file:    
+        data = json.load(data_file)
+
+    if usuario in data:
+        chat(sock, "El usuario {0} tiene {1} ponejonedas.".format(usuario, data[usuario]))
+    else:
+        chat(sock, "El usuario {0} no tiene una cuenta.".format(usuario))
